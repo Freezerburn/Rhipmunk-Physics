@@ -43,7 +43,7 @@
 (define _cpBodyPositionFunc
   (_fun _pointer _cpFloat -> _void))
 ; Definition of Chipmunk Body
-(define-cstruct _cpBody 
+(define-cstruct _cpBody
                 (; Integration Functions
                  [velocity_func _cpBodyVelocityFunc]
                  [position_func _cpBodyPositionFunc]
@@ -402,11 +402,7 @@
 
 (define cpMomentForCircle
   (get-ffi-obj "cpMomentForCircle" chipmunk
-               (_fun _cpFloat
-                     _cpFloat
-                     _cpFloat
-                     _cpVect
-                     -> _cpFloat)))
+               (_fun _cpFloat _cpFloat _cpFloat _cpVect -> _cpFloat)))
 
 ; ***********************************************
 ; * Start of various operation definitions.
