@@ -1,0 +1,1 @@
+("5.2.1" ("14062a4324d16d36fd7c6f27f4452167f2b810ed" . "16c30f946ba1d9624519399db5e7cfe258d3c64e") (collects #"errortrace" #"errortrace-key.rkt") (collects #"scheme" #"main.rkt") (collects #"ffi" #"unsafe.rkt") (collects #"ffi" #"unsafe" #"define.rkt") (collects #"scheme" #"lang" #"reader.rkt"))
