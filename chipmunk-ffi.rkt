@@ -8,6 +8,22 @@
 (define chipmunk (ffi-lib "mychipmunk"))
 (define-ffi-definer define-chipmunk chipmunk)
 
+(define-syntax (defchipmunk stx)
+  (syntax-case stx ()
+    [(defchipmunk name #:ptr type)
+     #`(begin (provide name)
+              (define name
+                (let ()
+                  (define-chipmunk ptr _pointer
+                    #:c-id #,(datum->syntax
+                              #'name
+                              (string->symbol
+                               (format "_~a" (syntax->datum #'name)))))
+                  (function-ptr ptr type))))]
+    [(defchipmunk name type)
+     #'(begin (provide name)
+              (define-chipmunk name type))]))
+
 ; ***********************************************
 ; * Start of Chipmunk type definitions
 ; ***********************************************
@@ -43,7 +59,7 @@
 (define _cpBodyPositionFunc
   (_fun _pointer _cpFloat -> _void))
 ; Definition of Chipmunk Body
-(define-cstruct _cpBody 
+(define-cstruct _cpBody
                 (; Integration Functions
                  [velocity_func _cpBodyVelocityFunc]
                  [position_func _cpBodyPositionFunc]
@@ -149,154 +165,107 @@
 ; cpSpace creation functions
 ; ***
 ; Definition for Space Allocation
-(define cpSpaceAlloc
-  (get-ffi-obj "cpSpaceAlloc" chipmunk
-               (_fun -> _cpSpace-pointer)))
+(defchipmunk cpSpaceAlloc (_fun -> _cpSpace-pointer))
 ; Definition for Space Initialization
-(define cpSpaceInit
-  (get-ffi-obj "cpSpaceInit" chipmunk
-               (_fun _cpSpace-pointer -> _cpSpace-pointer)))
+(defchipmunk cpSpaceInit (_fun _cpSpace-pointer -> _cpSpace-pointer))
 ; Definition for New Space Construction
 ;  Equivalent to: cpSpaceAlloc + spSpaceInit
-(define cpSpaceNew
-  (get-ffi-obj "cpSpaceNew" chipmunk
-               (_fun -> _cpSpace-pointer)))
+(defchipmunk cpSpaceNew (_fun -> _cpSpace-pointer))
 ; ***
 ; cpSpace destruction functions
 ; ***
 ; Definition for cpSpace Destruction
-(define cpSpaceDestroy
-  (get-ffi-obj "cpSpaceDestroy" chipmunk
-               (_fun _cpSpace-pointer -> _void)))
+(defchipmunk cpSpaceDestroy (_fun _cpSpace-pointer -> _void))
 ; Definition for Freeing cpSpace
-(define cpSpaceFree
-  (get-ffi-obj "cpSpaceFree" chipmunk
-               (_fun _cpSpace-pointer -> _void)))
+(defchipmunk cpSpaceFree (_fun _cpSpace-pointer -> _void))
 ; Definition for adding a cpShape to a cpSpace
-(define cpSpaceAddShape
-  (get-ffi-obj "cpSpaceAddShape" chipmunk
-               (_fun _cpSpace-pointer
-                     _cpShape-pointer
-                     -> _cpShape-pointer)))
+(defchipmunk cpSpaceAddShape
+  (_fun _cpSpace-pointer _cpShape-pointer -> _cpShape-pointer))
 ; Definition for adding a cpBody to a cpSpace
-(define cpSpaceAddBody
-  (get-ffi-obj "cpSpaceAddBody" chipmunk
-               (_fun _cpSpace-pointer
-                     _cpBody-pointer
-                     -> _cpBody-pointer)))
+(defchipmunk cpSpaceAddBody
+  (_fun _cpSpace-pointer _cpBody-pointer -> _cpBody-pointer))
 
 ; ********
 ; Getters and Setters Start
 ; ********
 ; Iterations Getter
-(define cpSpaceGetIterations
-  (function-ptr (get-ffi-obj "_cpSpaceGetIterations" chipmunk _pointer)
-                (_fun _cpSpace-pointer -> _int)))
+(defchipmunk cpSpaceGetIterations #:ptr (_fun _cpSpace-pointer -> _int))
 ; Iterations Setter
-(define cpSpaceSetIterations
-  (function-ptr (get-ffi-obj "_cpSpaceSetIterations" chipmunk _pointer)
-                (_fun _cpSpace-pointer _int -> _void)))
+(defchipmunk cpSpaceSetIterations #:ptr (_fun _cpSpace-pointer _int -> _void))
 ; Gravity Getter
-(define cpSpaceGetGravity
-  (function-ptr (get-ffi-obj "_cpSpaceGetGravity" chipmunk _pointer)
-                (_fun _cpSpace-pointer -> _cpVect)))
+(defchipmunk cpSpaceGetGravity #:ptr (_fun _cpSpace-pointer -> _cpVect))
 ; Gravity Setter
-(define cpSpaceSetGravity
-  (function-ptr (get-ffi-obj "_cpSpaceSetGravity" chipmunk _pointer)
-                (_fun _cpSpace-pointer _cpVect -> _void)))
+(defchipmunk cpSpaceSetGravity #:ptr (_fun _cpSpace-pointer _cpVect -> _void))
 ; Damping Getter
-(define cpSpaceGetDamping
-  (function-ptr (get-ffi-obj "_cpSpaceGetDamping" chipmunk _pointer)
-                (_fun _cpSpace-pointer -> _cpFloat)))
+(defchipmunk cpSpaceGetDamping #:ptr (_fun _cpSpace-pointer -> _cpFloat))
 ; Damping Setter
-(define cpSpaceSetDamping
-  (function-ptr (get-ffi-obj "_cpSpaceSetDamping" chipmunk _pointer)
-               (_fun _cpSpace-pointer _cpFloat -> _void)))
+(defchipmunk cpSpaceSetDamping #:ptr (_fun _cpSpace-pointer _cpFloat -> _void))
 ; Idle Speed Threshold Getter
-(define cpSpaceGetIdleSpeedThreshold
-  (function-ptr (get-ffi-obj "_cpSpaceGetIdleSpeedThreshold" chipmunk _pointer)
-                (_fun _cpSpace-pointer -> _cpFloat)))
+(defchipmunk cpSpaceGetIdleSpeedThreshold
+  #:ptr (_fun _cpSpace-pointer -> _cpFloat))
 ; Idle Speed Threshold Setter
-(define cpSpaceSetIdleSpeedThreshold
-  (function-ptr (get-ffi-obj "_cpSpaceSetIdleSpeedThreshold" chipmunk _pointer)
-                (_fun _cpSpace-pointer _cpFloat -> _void)))
+(defchipmunk cpSpaceSetIdleSpeedThreshold
+  #:ptr (_fun _cpSpace-pointer _cpFloat -> _void))
 ; Sleep Time Threshold Getter
-(define cpSpaceGetSleepTimeThreshold
-  (function-ptr (get-ffi-obj "_cpSpaceGetSleepTimeThreshold" chipmunk _pointer)
-                (_fun _cpSpace-pointer -> _cpFloat)))
+(defchipmunk cpSpaceGetSleepTimeThreshold
+  #:ptr (_fun _cpSpace-pointer -> _cpFloat))
 ; Sleep Time Threshold Setter
-(define cpSpaceSetSleepTimeThreshold
-  (function-ptr (get-ffi-obj "_cpSpaceSetSleepTimeThreshold" chipmunk _pointer)
-                (_fun _cpSpace-pointer _cpFloat -> _void)))
+(defchipmunk cpSpaceSetSleepTimeThreshold
+  #:ptr (_fun _cpSpace-pointer _cpFloat -> _void))
 ; Collision Slop Getter
-(define cpSpaceGetCollisionSlop
-  (function-ptr (get-ffi-obj "_cpSpaceGetCollisionSlop" chipmunk _pointer)
-                (_fun _cpSpace-pointer -> _cpFloat)))
+(defchipmunk cpSpaceGetCollisionSlop
+  #:ptr (_fun _cpSpace-pointer -> _cpFloat))
 ; Collision Slop Setter
-(define cpSpaceSetCollisionSlop
-  (function-ptr (get-ffi-obj "_cpSpaceSetCollisionSlop" chipmunk _pointer)
-                (_fun _cpSpace-pointer _cpFloat -> _void)))
+(defchipmunk cpSpaceSetCollisionSlop
+  #:ptr (_fun _cpSpace-pointer _cpFloat -> _void))
 ; Collision Bias Getter
-(define cpSpaceGetCollisionBias
-  (function-ptr (get-ffi-obj "_cpSpaceGetCollisionBias" chipmunk _pointer)
-                (_fun _cpSpace-pointer -> _cpFloat)))
+(defchipmunk cpSpaceGetCollisionBias
+  #:ptr (_fun _cpSpace-pointer -> _cpFloat))
 ; Collision Bias Setter
-(define cpSpaceSetCollisionBias
-  (function-ptr (get-ffi-obj "_cpSpaceSetCollisionBias" chipmunk _pointer)
-                (_fun _cpSpace-pointer _cpFloat -> _void)))
+(defchipmunk cpSpaceSetCollisionBias
+  #:ptr (_fun _cpSpace-pointer _cpFloat -> _void))
 ; Collision Persistence Getter
-(define cpSpaceGetCollisionPersistence
-  (function-ptr (get-ffi-obj "_cpSpaceGetCollisionPersistence" chipmunk _pointer)
-                (_fun _cpSpace-pointer -> _cpTimeStamp)))
+(defchipmunk cpSpaceGetCollisionPersistence
+  #:ptr (_fun _cpSpace-pointer -> _cpTimeStamp))
 ; Collisoin Persistence Setter
-(define cpSpaceSetCollisionPersistence
-  (function-ptr (get-ffi-obj "_cpSpaceSetCollisionPersistence" chipmunk _pointer)
-                (_fun _cpSpace-pointer _cpTimeStamp -> _void)))
+(defchipmunk cpSpaceSetCollisionPersistence
+  #:ptr (_fun _cpSpace-pointer _cpTimeStamp -> _void))
 ; Enable Contact Graph Getter
-(define cpSpaceGetEnableContactGraph
-  (function-ptr (get-ffi-obj "_cpSpaceGetEnableContactGraph" chipmunk _pointer)
-                (_fun _cpSpace-pointer -> _cpBool)))
+(defchipmunk cpSpaceGetEnableContactGraph
+  #:ptr (_fun _cpSpace-pointer -> _cpBool))
 ; Enable Contact Graph Setter
-(define cpSpaceSetEnableContactGraph
-  (function-ptr (get-ffi-obj "_cpSpaceSetEnableContactGraph" chipmunk _pointer)
-                (_fun _cpSpace-pointer _cpBool -> _void)))
+(defchipmunk cpSpaceSetEnableContactGraph
+  #:ptr (_fun _cpSpace-pointer _cpBool -> _void))
 ; User Data Getter
-(define cpSpaceGetUserData
-  (function-ptr (get-ffi-obj "_cpSpaceGetUserData" chipmunk _pointer)
-                (_fun _cpSpace-pointer -> _cpDataPointer)))
+(defchipmunk cpSpaceGetUserData
+  #:ptr (_fun _cpSpace-pointer -> _cpDataPointer))
 ; User Data Setter
-(define cpSpaceSetUserData
-  (function-ptr (get-ffi-obj "_cpSpaceSetUserData" chipmunk _pointer)
-                (_fun _cpSpace-pointer _cpDataPointer -> _void)))
+(defchipmunk cpSpaceSetUserData
+  #:ptr (_fun _cpSpace-pointer _cpDataPointer -> _void))
 ; Static Body Getter
-(define cpSpaceGetStaticBody
-  (function-ptr (get-ffi-obj "_cpSpaceGetStaticBody" chipmunk _pointer)
-                (_fun _cpSpace-pointer -> _cpBody-pointer)))
+(defchipmunk cpSpaceGetStaticBody
+  #:ptr (_fun _cpSpace-pointer -> _cpBody-pointer))
 ; Current Time Step Getter
-(define cpSpaceGetCurrentTimeStep
-  (function-ptr (get-ffi-obj "_cpSpaceGetCurrentTimeStep" chipmunk _pointer)
-                (_fun _cpSpace-pointer -> _cpFloat)))
+(defchipmunk cpSpaceGetCurrentTimeStep
+  #:ptr (_fun _cpSpace-pointer -> _cpFloat))
 ; ********
 ; Getters and Setters End
 ; ********
 ; Collision Handlers Start
 ; ********
 ; Default Collision Handler
-(define cpSpaceSetDefaultCollisionHandler
-  (get-ffi-obj "cpSpaceSetDefaultCollisionHandler" chipmunk
-               (_fun _cpSpace-pointer
-                     _cpCollisionBeginFunc
-                     _cpCollisionPreSolveFunc
-                     _cpCollisionPostSolveFunc
-                     _cpCollisionSeparateFunc
-                     _pointer
-                     -> _void)))
+(defchipmunk cpSpaceSetDefaultCollisionHandler
+  (_fun _cpSpace-pointer
+        _cpCollisionBeginFunc
+        _cpCollisionPreSolveFunc
+        _cpCollisionPostSolveFunc
+        _cpCollisionSeparateFunc
+        _pointer
+        -> _void))
 ; ********
 ; Collision Handlers End
 ; ********
-(define cpSpaceStep
-  (get-ffi-obj "cpSpaceStep" chipmunk
-               (_fun _cpSpace-pointer _cpFloat -> _void)))
+(defchipmunk cpSpaceStep (_fun _cpSpace-pointer _cpFloat -> _void))
 
 ; ***********************************************
 ; * End of Chipmunk Space definitions
@@ -308,22 +277,15 @@
 ; * Start of Chipmunk Shape operation definitions.
 ; ***********************************************
 
-(define cpSegmentShapeNew
-  (get-ffi-obj "cpSegmentShapeNew" chipmunk
-               (_fun _cpBody-pointer
-                     _cpVect
-                     _cpVect
-                     _cpFloat
-                     -> _cpShape-pointer)))
-(define cpShapeFree
-  (get-ffi-obj "cpShapeFree" chipmunk
-               (_fun _cpShape-pointer -> _void)))
+(defchipmunk cpSegmentShapeNew
+  (_fun _cpBody-pointer _cpVect _cpVect _cpFloat -> _cpShape-pointer))
+(defchipmunk cpShapeFree
+  (_fun _cpShape-pointer -> _void))
 ; ********
 ; Getters and Setters Start
 ; ********
-(define cpShapeSetFriction
-  (function-ptr (get-ffi-obj "_cpShapeSetFriction" chipmunk _pointer)
-                (_fun _cpShape-pointer _cpFloat -> _void)))
+(defchipmunk cpShapeSetFriction
+  #:ptr (_fun _cpShape-pointer _cpFloat -> _void))
 ; ********
 ; Getters and Setters End
 ; ********
@@ -338,30 +300,18 @@
 ; * Start of Chipmunk Shape operation definitions.
 ; ***********************************************
 
-(define cpBodyNew
-  (get-ffi-obj "cpBodyNew" chipmunk
-               (_fun _cpFloat _cpFloat -> _cpBody-pointer)))
-(define cpBodyFree
-  (get-ffi-obj "cpBodyFree" chipmunk
-               (_fun _cpBody-pointer -> _void)))
-(define cpCircleShapeNew
-  (get-ffi-obj "cpCircleShapeNew" chipmunk
-               (_fun _cpBody-pointer
-                     _cpFloat
-                     _cpVect
-                     -> _cpShape-pointer)))
+(defchipmunk cpBodyNew
+  (_fun _cpFloat _cpFloat -> _cpBody-pointer))
+(defchipmunk cpBodyFree
+  (_fun _cpBody-pointer -> _void))
+(defchipmunk cpCircleShapeNew
+  (_fun _cpBody-pointer _cpFloat _cpVect -> _cpShape-pointer))
 ; ********
 ; Getters and Setters Start
 ; ********
-(define cpBodyGetPos
-  (function-ptr (get-ffi-obj "_cpBodyGetPos" chipmunk _pointer)
-                (_fun _cpBody-pointer -> _cpVect)))
-(define cpBodySetPos
-  (get-ffi-obj "cpBodySetPos" chipmunk
-               (_fun _cpBody-pointer _cpVect -> _void)))
-(define cpBodyGetVel
-  (function-ptr (get-ffi-obj "_cpBodyGetVel" chipmunk _pointer)
-                (_fun _cpBody-pointer -> _cpVect)))
+(defchipmunk cpBodyGetPos #:ptr (_fun _cpBody-pointer -> _cpVect))
+(defchipmunk cpBodySetPos (_fun _cpBody-pointer _cpVect -> _void))
+(defchipmunk cpBodyGetVel #:ptr (_fun _cpBody-pointer -> _cpVect))
 ; ********
 ; Getters and Setters End
 ; ********
@@ -377,11 +327,11 @@
 ; ***********************************************
 ;(define (cpv x y)
   ;(make-cpVect x y))
-(define cpv
-  (function-ptr (get-ffi-obj "_cpv" chipmunk _pointer)
-                (_fun _cpFloat _cpFloat -> _cpVect)))
-(define (cpvzero)
-  (cpv 0.0 0.0))
+(defchipmunk cpv #:ptr (_fun _cpFloat _cpFloat -> _cpVect))
+(define (cpvzero) (cpv 0.0 0.0))
+;; FIXME: I didn't change the following three things, since they look
+;; suspicious (the first and the last start with a "_" but they're not
+;; pointers?)
 (define cpveql
   (get-ffi-obj "_cpveql" chipmunk (_fun _cpVect _cpVect -> _bool)))
 (define cpvadd
@@ -400,13 +350,8 @@
 ; * Start of various operation definitions.
 ; ***********************************************
 
-(define cpMomentForCircle
-  (get-ffi-obj "cpMomentForCircle" chipmunk
-               (_fun _cpFloat
-                     _cpFloat
-                     _cpFloat
-                     _cpVect
-                     -> _cpFloat)))
+(defchipmunk cpMomentForCircle
+  (_fun _cpFloat _cpFloat _cpFloat _cpVect -> _cpFloat))
 
 ; ***********************************************
 ; * Start of various operation definitions.

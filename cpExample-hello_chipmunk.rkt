@@ -21,7 +21,7 @@
 (define *ground
   (cpSegmentShapeNew (cpSpaceGetStaticBody *space) *ground-start* *ground-end* 0.0))
 (cpShapeSetFriction *ground 1.0)
-(cpSpaceAddShape *space *ground)
+(void (cpSpaceAddShape *space *ground))
 
 ; Now let's make a ball that falls onto the line and rolls off.
 ; First we need to make a cpBody to hold the physical properties of the object.
@@ -52,43 +52,35 @@
 ; stepping forward through time in small increments called steps.
 ; It is *highly* recommended to use a fixed size time step.
 (define *tick-rate* (/ 1 120.0))
-(define *canvas* 
-  (empty-scene 100.0 100.0))
-(big-bang 0
-          [on-tick
-           (lambda (state)
-             (cpSpaceStep *space *tick-rate*)
-             (+ state 1))
-           *tick-rate*]
-          [on-draw
-           (lambda (state)
-             (let
-                 ([pos (cpBodyGetPos *ballBody)]
-                  [vel (cpBodyGetVel *ballBody)])
-               (add-line
-                (add-line
-                 (place-image
-                  (circle radius 'solid 'blue)
-                  (cpVect-x pos)
-                  (cpVect-y pos)
-                  *canvas*)
-                 (cpVect-x pos)
-                 (cpVect-y pos)
-                 (+ (cpVect-x pos) (cpVect-x vel))
-                 (+ (cpVect-y pos) (cpVect-y vel))
-                 'black)
-                (cpVect-x *ground-start*)
-                (cpVect-y *ground-start*)
-                (cpVect-x *ground-end*)
-                (cpVect-y *ground-end*)
-                'green
-                )))]
-          )
+(define *canvas* (empty-scene 100.0 100.0))
+(big-bang
+ 0
+ [on-tick (lambda (state)
+            (cpSpaceStep *space *tick-rate*)
+            (+ state 1))
+          *tick-rate*]
+ [on-draw (lambda (state)
+            (define pos (cpBodyGetPos *ballBody))
+            (define vel (cpBodyGetVel *ballBody))
+            (add-line
+             (add-line (place-image (circle radius 'solid 'blue)
+                                    (cpVect-x pos)
+                                    (cpVect-y pos)
+                                    *canvas*)
+                       (cpVect-x pos)
+                       (cpVect-y pos)
+                       (+ (cpVect-x pos) (cpVect-x vel))
+                       (+ (cpVect-y pos) (cpVect-y vel))
+                       'black)
+             (cpVect-x *ground-start*)
+             (cpVect-y *ground-start*)
+             (cpVect-x *ground-end*)
+             (cpVect-y *ground-end*)
+             'green))]
+ )
 
 ; Clean up our objects and exit!
 (cpShapeFree *ballShape)
 (cpBodyFree *ballBody)
 (cpShapeFree *ground)
 (cpSpaceFree *space)
-                
-                 
