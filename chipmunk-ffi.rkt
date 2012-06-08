@@ -274,30 +274,7 @@
 ; -----------------------------------------------
 
 ; ***********************************************
-; * Start of Chipmunk Shape operation definitions.
-; ***********************************************
-
-(defchipmunk cpSegmentShapeNew
-  (_fun _cpBody-pointer _cpVect _cpVect _cpFloat -> _cpShape-pointer))
-(defchipmunk cpShapeFree
-  (_fun _cpShape-pointer -> _void))
-; ********
-; Getters and Setters Start
-; ********
-(defchipmunk cpShapeSetFriction
-  #:ptr (_fun _cpShape-pointer _cpFloat -> _void))
-; ********
-; Getters and Setters End
-; ********
-
-; ***********************************************
-; * End of Chipmunk Shape operation definitions.
-; ***********************************************
-
-; -----------------------------------------------
-
-; ***********************************************
-; * Start of Chipmunk Shape operation definitions.
+; * Start of Chipmunk Body operation definitions.
 ; ***********************************************
 
 (defchipmunk cpBodyNew
@@ -306,12 +283,74 @@
   (_fun _cpBody-pointer -> _void))
 (defchipmunk cpCircleShapeNew
   (_fun _cpBody-pointer _cpFloat _cpVect -> _cpShape-pointer))
+; Wake up a sleeping or idle body.
+(defchipmunk cpBodyActivate
+  (_fun _cpBody-pointer -> _void))
 ; ********
 ; Getters and Setters Start
 ; ********
 (defchipmunk cpBodyGetPos #:ptr (_fun _cpBody-pointer -> _cpVect))
 (defchipmunk cpBodySetPos (_fun _cpBody-pointer _cpVect -> _void))
 (defchipmunk cpBodyGetVel #:ptr (_fun _cpBody-pointer -> _cpVect))
+; ********
+; Getters and Setters End
+; ********
+
+; ***********************************************
+; * End of Chipmunk Body operation definitions.
+; ***********************************************
+
+; -----------------------------------------------
+
+; ***********************************************
+; * Start of Chipmunk Shape operation definitions.
+; ***********************************************
+
+; Shape Destruction Definition.
+(defchipmunk cpShapeDestroy
+  (_fun _cpShape-pointer -> _void))
+; Destroy and Free a Shape Definition
+(defchipmunk cpShapeFree
+  (_fun _cpShape-pointer -> _void))
+; Update, cache, and return the bounding box of a shape based on the body it's attached to.
+(defchipmunk cpShapeCacheBB
+  (_fun _cpShape-pointer -> _cpBB))
+; Updated, cache, and return the bounding box of a shape with an explicit transformation.
+(defchipmunk cpShapeUpdate
+  (_fun _cpShape-pointer _cpVect _cpVect -> _cpBB))
+; Test if a point lies within a shape.
+(defchipmunk cpShapePointQuery
+  (_fun _cpShape-pointer _cpVect -> _cpBool))
+; New shape segment creation definition.
+(defchipmunk cpSegmentShapeNew
+  (_fun _cpBody-pointer _cpVect _cpVect _cpFloat -> _cpShape-pointer))
+; ********
+; Getters and Setters Start
+; ********
+; Get the cpBody from a cpShape.
+(defchipmunk cpShapeGetBody
+  #:ptr (_fun _cpShape-pointer -> _cpBody-pointer))
+; Set the cpBody in a cpShape.
+(defchipmunk cpShapeSetBody
+  #:ptr (_fun _cpShape-pointer _cpBody-pointer -> _void))
+; Set the cpBB in a cpShape.
+(defchipmunk cpShapeGetBB
+  #:ptr (_fun _cpShape-pointer -> _cpBB))
+; Get the sensor in a cpShape.
+(defchipmunk cpShapeGetSensor
+  #:ptr (_fun _cpShape-pointer -> _cpBool))
+; Set the sensor in the cpShape.
+(defchipmunk cpShapeSetSensor
+  #:ptr (_fun _cpShape-pointer _cpBool -> _void))
+; Get the elasticity from a cpShape.
+(defchipmunk cpShapeGetElasticity
+  #:ptr (_fun _cpShape-pointer -> _cpFloat))
+; Set the elasticity in a cpShape.
+(defchipmunk cpShapeSetElasticity
+  #:ptr (_fun _cpShape-pointer _cpFloat -> _void))
+; Get the friction from a cpShape.
+(defchipmunk cpShapeSetFriction
+  #:ptr (_fun _cpShape-pointer _cpFloat -> _void))
 ; ********
 ; Getters and Setters End
 ; ********

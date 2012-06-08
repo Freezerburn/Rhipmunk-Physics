@@ -39,7 +39,13 @@
 ; It's convenient to create and add an object in one line.
 (define *ballBody
   (cpSpaceAddBody *space (cpBodyNew mass moment)))
+(define *ballBody1
+  (cpSpaceAddBody *space (cpBodyNew mass moment)))
+(define *ballBody2
+  (cpSpaceAddBody *space (cpBodyNew mass moment)))
 (cpBodySetPos *ballBody (cpv 60.0 15.0))
+(cpBodySetPos *ballBody1 (cpv 66.0 15.0))
+(cpBodySetPos *ballBody2 (cpv 54.0 15.0))
 
 ; Now we create the collision shape for the ball.
 ; You can create multiple collision shapes that point to the same body.
@@ -47,6 +53,12 @@
 (define *ballShape
   (cpSpaceAddShape *space (cpCircleShapeNew *ballBody radius (cpvzero))))
 (cpShapeSetFriction *ballShape 0.7)
+(define *ballShape1
+  (cpSpaceAddShape *space (cpCircleShapeNew *ballBody1 radius (cpvzero))))
+(cpShapeSetFriction *ballShape1 0.7)
+(define *ballShape2
+  (cpSpaceAddShape *space (cpCircleShapeNew *ballBody2 radius (cpvzero))))
+(cpShapeSetFriction *ballShape2 0.7)
 
 ; Now that it's all set up, we simulate all the objects in the space by
 ; stepping forward through time in small increments called steps.
