@@ -3,7 +3,8 @@
 ; TODOTODO: Make ffi bindings lazy to reduce startup time.
 
 (require ffi/unsafe
-         ffi/unsafe/define)
+         ffi/unsafe/define
+         rnrs/arithmetic/bitwise-6)
 
 (define chipmunk (ffi-lib "mychipmunk"))
 (define-ffi-definer define-chipmunk chipmunk)
@@ -38,6 +39,8 @@
 (define _cpCollisionType _uint)
 (define _cpGroup _uint)
 (define _cpLayers _uint)
+(define GRABABLE_MASK (arithmetic-shift 1 31))
+(define NOT_GRABABLE_MASK (bitwise-not GRABABLE_MASK))
 
 ; ***********************************************
 ; * End of Chipmunk type definitions
@@ -274,6 +277,23 @@
 ; -----------------------------------------------
 
 ; ***********************************************
+; * Start of Chipmunk Bounding Box operation definitions.
+; ***********************************************
+(defchipmunk cpBBNew
+  #:ptr (_fun _cpFloat _cpFloat _cpFloat _cpFloat -> _cpBB))
+; ********
+; Getters and Setters Start
+; ********
+; ********
+; Getters and Setters End
+; ********
+; ***********************************************
+; * End of Chipmunk Bounding Box operation definitions.
+; ***********************************************
+
+; -----------------------------------------------
+
+; ***********************************************
 ; * Start of Chipmunk Body operation definitions.
 ; ***********************************************
 
@@ -349,8 +369,41 @@
 (defchipmunk cpShapeSetElasticity
   #:ptr (_fun _cpShape-pointer _cpFloat -> _void))
 ; Get the friction from a cpShape.
+(defchipmunk cpShapeGetFriction
+  #:ptr (_fun _cpShape-pointer -> _cpFloat))
+; Set the friction in a cpShape
 (defchipmunk cpShapeSetFriction
   #:ptr (_fun _cpShape-pointer _cpFloat -> _void))
+; Get the Surface Velocity from a cpShape.
+(defchipmunk cpShapeGetSurfaceVelocity
+  #:ptr (_fun _cpShape-pointer -> _cpVect))
+; Set the Surface Velocity in a cpShape.
+(defchipmunk cpShapeSetSurfaceVelocity
+  #:ptr (_fun _cpShape-pointer _cpVect -> _cpVect))
+; Get the UserData from a cpShape.
+(defchipmunk cpShapeGetUserData
+  #:ptr (_fun _cpShape-pointer -> _cpDataPointer))
+; Set the UserData in a cpShape.
+(defchipmunk cpShapeSetUserData
+  #:ptr (_fun _cpShape-pointer _cpDataPointer -> _void))
+; Get the Collision Type from a cpShape.
+(defchipmunk cpShapeGetCollisionType
+  #:ptr (_fun _cpShape-pointer -> _cpCollisionType))
+; Set the Collision Type in a cpShape.
+(defchipmunk cpShapeSetCollisionType
+  #:ptr (_fun _cpShape-pointer _cpCollisionType -> _void))
+; Get the Group from a cpShape.
+(defchipmunk cpShapeGetGroup
+  #:ptr (_fun _cpShape-pointer -> _cpGroup))
+; Set the Group in a cpShape.
+(defchipmunk cpShapeSetGroup
+  #:ptr (_fun _cpShape-pointer _cpGroup -> _void))
+; Get the Layer from a cpShape.
+(defchipmunk cpShapeGetLayers
+  #:ptr (_fun _cpShape-pointer -> _cpLayers))
+; Set the Layer in a cpShape.
+(defchipmunk cpShapeSetLayers
+  #:ptr (_fun _cpShape-pointer _cpLayers -> _void))
 ; ********
 ; Getters and Setters End
 ; ********
