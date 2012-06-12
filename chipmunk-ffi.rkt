@@ -34,13 +34,17 @@
 (define _cpDataPointer _pointer)
 (define _size_t _ulong)
 (define _cpHashValue _size_t)
-(define _cpBool _bool)
+(define _cpBool _int)
+(define cpTrue 1)
+(define cpFalse 0)
 (define _cpTimeStamp _uint)
 (define _cpCollisionType _uint)
 (define _cpGroup _uint)
 (define _cpLayers _uint)
-(define GRABABLE_MASK (arithmetic-shift 1 31))
-(define NOT_GRABABLE_MASK (bitwise-not GRABABLE_MASK))
+(define (sint32->uint32 v)
+  (bitwise-and #xFFFFFFFF v))
+(define GRABABLE_MASK (sint32->uint32 (arithmetic-shift 1 31)))
+(define NOT_GRABABLE_MASK (sint32->uint32 (bitwise-not GRABABLE_MASK)))
 
 ; ***********************************************
 ; * End of Chipmunk type definitions
@@ -312,6 +316,9 @@
 (defchipmunk cpBodyGetPos #:ptr (_fun _cpBody-pointer -> _cpVect))
 (defchipmunk cpBodySetPos (_fun _cpBody-pointer _cpVect -> _void))
 (defchipmunk cpBodyGetVel #:ptr (_fun _cpBody-pointer -> _cpVect))
+(defchipmunk cpBodySetVel #:ptr (_fun _cpBody-pointer _cpVect -> _void))
+(defchipmunk cpBodyGetAngVel #:ptr (_fun _cpBody-pointer -> _cpFloat))
+(defchipmunk cpBodySetAngVel #:ptr (_fun _cpBody-pointer _cpFloat -> _void))
 ; ********
 ; Getters and Setters End
 ; ********
@@ -439,11 +446,26 @@
 ; -----------------------------------------------
 
 ; ***********************************************
+; * Start of PolyShape operation definitions.
+; ***********************************************
+(defchipmunk cpBoxShapeNew
+  (_fun _cpBody-pointer _cpFloat _cpFloat -> _cpShape-pointer))
+(defchipmunk cpBoxShapeNew2
+  (_fun _cpBody-pointer _cpBB -> _cpShape-pointer))
+; ***********************************************
+; * End of PolyShape operation definitions.
+; ***********************************************
+
+; -----------------------------------------------
+
+; ***********************************************
 ; * Start of various operation definitions.
 ; ***********************************************
 
 (defchipmunk cpMomentForCircle
   (_fun _cpFloat _cpFloat _cpFloat _cpVect -> _cpFloat))
+(defchipmunk cpMomentForBox
+  (_fun _cpFloat _cpFloat _cpFloat -> _cpFloat))
 
 ; ***********************************************
 ; * Start of various operation definitions.
