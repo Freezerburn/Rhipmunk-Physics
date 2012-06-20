@@ -41,12 +41,34 @@
            [centroid (cpCentroidForPoly clippedCount clipped)]
            [r (cpvsub centroid (cpBodyGetPos body))]
            [dt (cpSpaceGetCurrentTimeStep *space)]
-           [g (cpSpaceGetGravity *space)]
-           [v_centroid (cpvadd (cpBody-v body) (cpvmult (cpvperp r) (cpBody-w body)))]
-           [k (k_scalar_body body r (cpvnormalize_safe v_centroid))]
-           [damping (* clippedArea FLUID_DRAG FLUID_DENSITY)]
-           [v_coef (cpfexp (- (* damping dt k)))])
-        cpTrue
+           [g (cpSpaceGetGravity *space)])
+        (apply_impulse body
+                       (cpvmult g
+                                (- (* displacedMass dt))
+                                r))
+        (let*
+            ([v_centroid (cpvadd (cpBody-v body) (cpvmult (cpvperp r) (cpBody-w body)))]
+             [k (k_scalar_body body r (cpvnormalize_safe v_centroid))]
+             [damping (* clippedArea FLUID_DRAG FLUID_DENSITY)]
+             [v_coef (cpfexp (- (* damping dt k)))])
+          (apply_impulse body
+                         (cpvmult (cpvsub (cpvmult v_centroid
+                                                   v_coef)
+                                          v_centroid)
+                                  (/ 1.0 k))
+                         r)
+          (set-cpBody-w! body
+                         (* (cpBody-w body)
+                            (cpfexp (* (- (cpMomentForPoly (* FLUID_DRAG
+                                                              FLUID_DENSITY
+                                                              clippedArea)
+                                                           clippedCount
+                                                           clipped
+                                                           (cpvneg (cpBody-p body))))
+                                       dt
+                                       (cpBody-i_inv body)))))
+          cpTrue
+          )
         )
       )
     )
@@ -172,3 +194,23 @@
                             #f
                             #f
                             #f)
+
+(big-bang 0
+          [on-tick (lambda (ticks)
+                     (let ([dt (/ 1.0 60.0 3.0)])
+                       (cpSpaceStep *space dt)
+                       (cpSpaceStep *space dt)
+                       (cpSpaceStep *space dt)
+                       )
+                     )
+                   (/ 1 60.0)]
+          [on-draw (lambda (ticks)
+                     (place-image (rectangle 40
+                                             80
+                                             "solid"
+                                             "blue")
+                                  (cpVect-x (cpBody-p *body2))
+                                  (cpVect-y (cpBody-p *body2))
+                                  (empty-scene 640 480))
+                     )]
+          )

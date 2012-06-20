@@ -451,6 +451,8 @@
                 (_fun _cpVect _cpVect -> _cpVect)))
 (defchipmunk cpvsub
   #:ptr (_fun _cpVect _cpVect -> _cpVect))
+(defchipmunk cpvneg
+  #:ptr (_fun _cpVect -> _cpVect))
 (defchipmunk cpvmult
   #:ptr (_fun _cpVect _cpVect -> _cpVect))
 (defchipmunk cpvcross
@@ -505,6 +507,8 @@
 ; * Start of various operation definitions.
 ; ***********************************************
 
+(defchipmunk cpMomentForPoly
+  (_fun _cpFloat _int _cpVect-pointer _cpVect -> _cpFloat))
 (defchipmunk cpAreaForPoly
   (_fun _int _cpVect-pointer -> _cpFloat))
 (defchipmunk cpCentroidForPoly
@@ -528,6 +532,13 @@
           rcn
           rcn))
      )
+  )
+(define (apply_impulse *body j r)
+  (set-cpBody-v! (cpvadd (cpBody-v *body)
+                         (cpvmult j (cpBody-m_inv *body))))
+  (set-cpBody-w! (* (cpBody-i_inv *body)
+                    (cpvcross r j)))
+  _void
   )
 
 ; ***********************************************
