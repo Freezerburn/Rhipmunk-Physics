@@ -45,6 +45,7 @@
   (bitwise-and #xFFFFFFFF v))
 (define GRABABLE_MASK (sint32->uint32 (arithmetic-shift 1 31)))
 (define NOT_GRABABLE_MASK (sint32->uint32 (bitwise-not GRABABLE_MASK)))
+(define cpfexp exp)
 
 ; ***********************************************
 ; * End of Chipmunk type definitions
@@ -269,6 +270,16 @@
         _cpCollisionSeparateFunc
         _pointer
         -> _void))
+(defchipmunk cpSpaceAddCollisionHandler
+  (_fun _cpSpace-pointer
+        _cpCollisionType
+        _cpCollisionType
+        _cpCollisionBeginFunc
+        _cpCollisionPreSolveFunc
+        _cpCollisionPostSolveFunc
+        _cpCollisionSeparateFunc
+        _pointer
+        -> _void))
 ; ********
 ; Collision Handlers End
 ; ********
@@ -322,6 +333,8 @@
 ; ********
 ; Getters and Setters End
 ; ********
+(defchipmunk cpBodyLocal2World
+  #:ptr (_fun _cpBody-pointer _cpVect -> _cpVect))
 
 ; ***********************************************
 ; * End of Chipmunk Body operation definitions.
@@ -436,8 +449,20 @@
 (define cpvadd
   (function-ptr (get-ffi-obj "_cpvadd" chipmunk _pointer)
                 (_fun _cpVect _cpVect -> _cpVect)))
+(defchipmunk cpvsub
+  #:ptr (_fun _cpVect _cpVect -> _cpVect))
+(defchipmunk cpvmult
+  #:ptr (_fun _cpVect _cpVect -> _cpVect))
+(defchipmunk cpvcross
+  #:ptr (_fun _cpVect _cpVect -> _cpVect))
+(defchipmunk cpvperp
+  #:ptr (_fun _cpVect -> _cpVect))
 (define cpvlengthsq
   (get-ffi-obj "_cpvlengthsq" chipmunk (_fun _cpVect -> _cpFloat)))
+(defchipmunk cpvlerp
+   #:ptr (_fun _cpVect _cpVect _cpFloat -> _cpVect))
+(defchipmunk cpvnormalize_safe
+  #:ptr (_fun _cpVect -> _cpVect))
 
 ; ***********************************************
 ; * End of vector operation definitions.
@@ -452,8 +477,26 @@
   (_fun _cpBody-pointer _cpFloat _cpFloat -> _cpShape-pointer))
 (defchipmunk cpBoxShapeNew2
   (_fun _cpBody-pointer _cpBB -> _cpShape-pointer))
+(defchipmunk cpPolyShapeGetNumVerts
+  (_fun _cpShape-pointer -> _int))
+(defchipmunk cpPolyShapeGetVert
+  (_fun _cpShape-pointer _int -> _cpVect))
 ; ***********************************************
 ; * End of PolyShape operation definitions.
+; ***********************************************
+
+; -----------------------------------------------
+
+; ***********************************************
+; * Start of Arbiter operation definitions.
+; ***********************************************
+(defchipmunk cpArbiterGetShapes
+  #:ptr (_fun _cpArbiter-pointer
+        (_ptr o _cpShape-pointer)
+        (_ptr o _cpShape-pointer)
+        -> _void))
+; ***********************************************
+; * End of Arbiter operation definitions.
 ; ***********************************************
 
 ; -----------------------------------------------
@@ -462,10 +505,30 @@
 ; * Start of various operation definitions.
 ; ***********************************************
 
+(defchipmunk cpAreaForPoly
+  (_fun _int _cpVect-pointer -> _cpFloat))
+(defchipmunk cpCentroidForPoly
+  (_fun _int _cpVect-pointer -> _cpVect))
 (defchipmunk cpMomentForCircle
   (_fun _cpFloat _cpFloat _cpFloat _cpVect -> _cpFloat))
 (defchipmunk cpMomentForBox
   (_fun _cpFloat _cpFloat _cpFloat -> _cpFloat))
+(defchipmunk cpfabs
+  #:ptr (_fun _cpFloat -> _cpFloat))
+; ********
+; constraints/util.h
+; ********
+; FIXME: k_scalar_body does not seem to be defined in
+; the dll for some reason. Would be nice to find out
+; why. For now, it is implemented in pure Racket.
+(define (k_scalar_body *body r n)
+  (let ([rcn (cpvcross r n)])
+    (+ (cpBody-m_inv *body)
+       (* (cpBody-i_inv *body)
+          rcn
+          rcn))
+     )
+  )
 
 ; ***********************************************
 ; * Start of various operation definitions.

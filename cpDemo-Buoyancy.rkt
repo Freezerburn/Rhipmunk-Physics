@@ -3,14 +3,52 @@
 (require htdp/image)
 (require 2htdp/universe)
 (require "chipmunk-ffi.rkt")
+(require ffi/unsafe)
 
 ; Pre-solve function for water buoyancy in the space.
 (define (water-presolve arb space ptr)
   (let
-      ([water _cpShape-pointer]
-       [poly _cpShape-pointer])
+      ([water (_ptr o _cpShape-pointer)]
+       [poly (_ptr o _cpShape-pointer)])
     (cpArbiterGetShapes arb water poly)
-    1
+    (let*
+        ([body (cpShapeGetBody poly)]
+         [level (cpBB-t (cpShapeGetBB water))]
+         [count (cpPolyShapeGetNumVerts poly)]
+         [clipped (null)])
+      (for/fold ([i 0]
+                 [j (sub1 count)])
+        ([is (sequence->list (in-range 1 count))])
+        (let*
+            ([a (cpBodyLocal2World body (cpPolyShapeGetVert poly j))]
+             [b (cpBodyLocal2World body (cpPolyShapeGetVert poly i))]
+             [a-level (- (cpVect-y a) level)]
+             (b-level (- (cpVect-y b) level)))
+          (if (< (cpVect-y a) level)
+              (set! clipped (cons a clipped))
+              0)
+          (if (< (* a-level b-level) 0.0)
+              (set! clipped (cons (cpvlerp a b
+                                           (/ (cpfabs a-level) (+ (cpfabs a-level) (cpfabs b-level))))))
+              0)
+          (values is is)
+          )
+        )
+      (let*
+          ([clippedCount (length clipped)]
+           [clippedArea (cpAreaForPoly clippedCount clipped)]
+           [displacedMass (* clippedArea FLUID_DENSITY)]
+           [centroid (cpCentroidForPoly clippedCount clipped)]
+           [r (cpvsub centroid (cpBodyGetPos body))]
+           [dt (cpSpaceGetCurrentTimeStep *space)]
+           [g (cpSpaceGetGravity *space)]
+           [v_centroid (cpvadd (cpBody-v body) (cpvmult (cpvperp r) (cpBody-w body)))]
+           [k (k_scalar_body body r (cpvnormalize_safe v_centroid))]
+           [damping (* clippedArea FLUID_DRAG FLUID_DENSITY)]
+           [v_coef (cpfexp (- (* damping dt k)))])
+        cpTrue
+        )
+      )
     )
   )
 
@@ -127,3 +165,10 @@
 (cpBodySetAngVel *body2 1.0)
 (define *body-shape2 (cpSpaceAddShape *space (cpBoxShapeNew *body1 *width1* *height1*)))
 (cpShapeSetFriction *body-shape2 0.8)
+
+(cpSpaceAddCollisionHandler *space 1 0 
+                            #f
+                            water-presolve
+                            #f
+                            #f
+                            #f)
