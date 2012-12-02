@@ -197,7 +197,7 @@
 ; Getters and Setters Start
 ; ********
 ; Iterations Getter
-(defchipmunk cpSpaceGetIterations #:ptr (_fun _cpSpace-pointer -> _int))
+;(defchipmunk cpSpaceGetIterations #:ptr (_fun _cpSpace-pointer -> _int))
 ; Iterations Setter
 (defchipmunk cpSpaceSetIterations #:ptr (_fun _cpSpace-pointer _int -> _void))
 ; Gravity Getter
@@ -494,9 +494,9 @@
 ; ***********************************************
 (defchipmunk cpArbiterGetShapes
   #:ptr (_fun _cpArbiter-pointer
-        (_ptr o _cpShape-pointer)
-        (_ptr o _cpShape-pointer)
-        -> _void))
+              (_ptr io _cpShape-pointer)
+              (_ptr io _cpShape-pointer)
+              -> _void))
 ; ***********************************************
 ; * End of Arbiter operation definitions.
 ; ***********************************************
