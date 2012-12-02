@@ -1,4 +1,4 @@
-#lang scheme
+#lang racket
 
 ; TODOTODO: Make ffi bindings lazy to reduce startup time.
 
@@ -6,7 +6,8 @@
          ffi/unsafe/define
          rnrs/arithmetic/bitwise-6)
 
-(define chipmunk (ffi-lib "mychipmunk"))
+(define chpdll (build-path (current-directory) (string->path-element "chipmunk")))
+(define chipmunk (ffi-lib "chipmunk"))
 (define-ffi-definer define-chipmunk chipmunk)
 
 (define-syntax (defchipmunk stx)
@@ -312,6 +313,8 @@
 ; * Start of Chipmunk Body operation definitions.
 ; ***********************************************
 
+(defchipmunk cpBodyAlloc
+  (_fun -> _cpBody-pointer))
 (defchipmunk cpBodyNew
   (_fun _cpFloat _cpFloat -> _cpBody-pointer))
 (defchipmunk cpBodyFree
@@ -492,6 +495,13 @@
 ; ***********************************************
 ; * Start of Arbiter operation definitions.
 ; ***********************************************
+; HACKHACK: Not sure how to express a "_cpShape-pointer-pointer", so this
+;  currently just uses a raw pointer. Demo code mallocs an 'atomic
+;  _cpShape-pointer (with correct size), and an 'atomic _pointer, then
+;  copies the first (ctype-sizeof _pointer) bytes of the _cpShape-pointer
+;  to the raw pointer, which is passed in to this. Either this needs to
+;  be expressed better/correctly, or it needs to be macro-ized so that
+;  you don't need to actually do all that junk.
 (defchipmunk cpArbiterGetShapes
   #:ptr (_fun _cpArbiter-pointer
               (_ptr io _cpShape-pointer)
