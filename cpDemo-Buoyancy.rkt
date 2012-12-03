@@ -13,7 +13,8 @@
         ([body (cpShapeGetBody poly)]
          [level (cpBB-t (cpShapeGetBB water))]
          [count (cpPolyShapeGetNumVerts poly)]
-         [clipped (make-cvector _cpVect count)])
+         [clipped (make-cvector _cpVect count)]
+         [clippedCount 0])
       (for/fold ([i 0]
                  [j (sub1 count)])
         ([is (sequence->list (in-range 1 count))])
@@ -23,20 +24,26 @@
              [a-level (- (cpVect-y a) level)]
              (b-level (- (cpVect-y b) level)))
           (if (< (cpVect-y a) level)
-              (cvector-set! clipped i a)
-              (cvector-set! clipped i (cpvzero)))
+              (begin
+                (cvector-set! clipped clippedCount a)
+                (set! clippedCount (add1 clippedCount)))
+              0)
           (if (< (* a-level b-level) 0.0)
-              (cvector-set! clipped i (cpvlerp a b
-                                               (/ (cpfabs a-level) (+ (cpfabs a-level) (cpfabs b-level)))))
-              (cvector-set! clipped i (cpvzero)))
-          (values is is)
-          )
-        )
+              (begin
+                (cvector-set! clipped clippedCount (cpvlerp a b
+                                                            (/ (cpfabs a-level)
+                                                               (+ (cpfabs a-level)
+                                                                  (cpfabs b-level)))))
+                (set! clippedCount (add1 clippedCount)))
+              0)
+          (values is is)))
+      (for ([i (sequence->list (in-range clippedCount count))])
+          (cvector-set! clipped i (cpvzero)))
       (let*
           ([clipped-ptr (cast (cvector-ptr clipped) _gcpointer _cpVect-pointer)]
-           [clippedArea (cpAreaForPoly count clipped-ptr)]
+           [clippedArea (cpAreaForPoly clippedCount clipped-ptr)]
            [displacedMass (* clippedArea FLUID_DENSITY)]
-           [centroid (cpCentroidForPoly count clipped-ptr)]
+           [centroid (cpCentroidForPoly clippedCount clipped-ptr)]
            [r (cpvsub centroid (cpBodyGetPos body))]
            [dt (cpSpaceGetCurrentTimeStep *space)]
            [g (cpSpaceGetGravity *space)])
@@ -60,7 +67,7 @@
                             (cpfexp (* (- (cpMomentForPoly (* FLUID_DRAG
                                                               FLUID_DENSITY
                                                               clippedArea)
-                                                           count
+                                                           clippedCount
                                                            clipped-ptr
                                                            (cpvneg (cpBody-p body))))
                                        dt
