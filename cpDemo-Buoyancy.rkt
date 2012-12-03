@@ -179,11 +179,11 @@
 (define *mass2* (* 0.3 FLUID_DENSITY *width2* *height2*))
 (define *moment2* (cpMomentForBox *mass2* *width2* *height2*))
 
-(define *body2 (cpSpaceAddBody *space (cpBodyNew *mass2* *moment1*)))
+(define *body2 (cpSpaceAddBody *space (cpBodyNew *mass2* *moment2*)))
 (cpBodySetPos *body2 (cpv -200.0 -50.0))
 (cpBodySetVel *body2 (cpv 0.0 -100.0))
 (cpBodySetAngVel *body2 1.0)
-(define *body-shape2 (cpSpaceAddShape *space (cpBoxShapeNew *body1 *width1* *height1*)))
+(define *body-shape2 (cpSpaceAddShape *space (cpBoxShapeNew *body2 *width2* *height2*)))
 (cpShapeSetFriction *body-shape2 0.8)
 
 (cpSpaceAddCollisionHandler *space 1 0 
