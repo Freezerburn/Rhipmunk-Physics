@@ -4,6 +4,7 @@
 (require 2htdp/universe)
 (require "chipmunk-ffi.rkt")
 (require ffi/unsafe)
+(require ffi/cvector)
 
 ; Pre-solve function for water buoyancy in the space.
 (define (water-presolve arb space ptr)
@@ -12,7 +13,7 @@
         ([body (cpShapeGetBody poly)]
          [level (cpBB-t (cpShapeGetBB water))]
          [count (cpPolyShapeGetNumVerts poly)]
-         [clipped null])
+         [clipped (make-cvector _cpVect count)])
       (for/fold ([i 0]
                  [j (sub1 count)])
         ([is (sequence->list (in-range 1 count))])
@@ -22,27 +23,27 @@
              [a-level (- (cpVect-y a) level)]
              (b-level (- (cpVect-y b) level)))
           (if (< (cpVect-y a) level)
-              (set! clipped (cons a clipped))
-              0)
+              (cvector-set! clipped i a)
+              (cvector-set! clipped i (cpvzero)))
           (if (< (* a-level b-level) 0.0)
-              (set! clipped (cons (cpvlerp a b
-                                           (/ (cpfabs a-level) (+ (cpfabs a-level) (cpfabs b-level))))))
-              0)
+              (cvector-set! clipped i (cpvlerp a b
+                                               (/ (cpfabs a-level) (+ (cpfabs a-level) (cpfabs b-level)))))
+              (cvector-set! clipped i (cpvzero)))
           (values is is)
           )
         )
       (let*
-          ([clippedCount (length clipped)]
-           [clippedArea (cpAreaForPoly clippedCount clipped)]
+          ([clipped-ptr (cast (cvector-ptr clipped) _gcpointer _cpVect-pointer)]
+           [clippedArea (cpAreaForPoly count clipped-ptr)]
            [displacedMass (* clippedArea FLUID_DENSITY)]
-           [centroid (cpCentroidForPoly clippedCount clipped)]
+           [centroid (cpCentroidForPoly count clipped-ptr)]
            [r (cpvsub centroid (cpBodyGetPos body))]
            [dt (cpSpaceGetCurrentTimeStep *space)]
            [g (cpSpaceGetGravity *space)])
         (apply_impulse body
                        (cpvmult g
-                                (- (* displacedMass dt))
-                                r))
+                                (- (* displacedMass dt)))
+                       r)
         (let*
             ([v_centroid (cpvadd (cpBody-v body) (cpvmult (cpvperp r) (cpBody-w body)))]
              [k (k_scalar_body body r (cpvnormalize_safe v_centroid))]
@@ -59,8 +60,8 @@
                             (cpfexp (* (- (cpMomentForPoly (* FLUID_DRAG
                                                               FLUID_DENSITY
                                                               clippedArea)
-                                                           clippedCount
-                                                           clipped
+                                                           count
+                                                           clipped-ptr
                                                            (cpvneg (cpBody-p body))))
                                        dt
                                        (cpBody-i_inv body)))))

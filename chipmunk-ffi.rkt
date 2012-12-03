@@ -60,8 +60,8 @@
 
 ; Definition of Chipmunk Vector
 (define-cstruct _cpVect
-                ([x _cpFloat]
-                 [y _cpFloat]))
+  ([x _cpFloat]
+   [y _cpFloat]))
 ; Definition of Chipmunk rigid body functions for _cpBody
 (define _cpBodyVelocityFunc
   (_fun _pointer _cpVect _cpFloat _cpFloat -> _void))
@@ -69,53 +69,53 @@
   (_fun _pointer _cpFloat -> _void))
 ; Definition of Chipmunk Body
 (define-cstruct _cpBody
-                (; Integration Functions
-                 [velocity_func _cpBodyVelocityFunc]
-                 [position_func _cpBodyPositionFunc]
-                 ; Mass Properties
-                 [m _cpFloat]
-                 [m_inv _cpFloat]
-                 [i _cpFloat]
-                 [i_inv _cpFloat]
-                 ; Positional Properties
-                 [p _cpVect]
-                 [v _cpVect]
-                 [f _cpVect]
-                 [a _cpFloat]
-                 [w _cpFloat]
-                 [t _cpFloat]
-                 [rot _cpVect]
-                 ; User Definable Fields
-                 [data _cpDataPointer]
-                 ; Internally Used Fields
-                 [v_bias _cpVect]
-                 [w_bias _cpFloat]))
+  (; Integration Functions
+   [velocity_func _cpBodyVelocityFunc]
+   [position_func _cpBodyPositionFunc]
+   ; Mass Properties
+   [m _cpFloat]
+   [m_inv _cpFloat]
+   [i _cpFloat]
+   [i_inv _cpFloat]
+   ; Positional Properties
+   [p _cpVect]
+   [v _cpVect]
+   [f _cpVect]
+   [a _cpFloat]
+   [w _cpFloat]
+   [t _cpFloat]
+   [rot _cpVect]
+   ; User Definable Fields
+   [data _cpDataPointer]
+   ; Internally Used Fields
+   [v_bias _cpVect]
+   [w_bias _cpFloat]))
 ; Definition of Chipmunk Space
 (define-cstruct _cpSpace
-                ([iterations _int]
-                 [gravity _cpVect]
-                 [damping _cpFloat]
-                 [idleSpeedThreshold _cpFloat]
-                 [sleepTimeThreshold _cpFloat]
-                 [collisionSlop _cpFloat]
-                 [collisionBias _cpFloat]
-                 [collisionPersistence _cpFloat]
-                 [enableContactGraph _cpBool]
-                 [data _cpDataPointer]
-                 [staticBody _cpBody-pointer]))
+  ([iterations _int]
+   [gravity _cpVect]
+   [damping _cpFloat]
+   [idleSpeedThreshold _cpFloat]
+   [sleepTimeThreshold _cpFloat]
+   [collisionSlop _cpFloat]
+   [collisionBias _cpFloat]
+   [collisionPersistence _cpFloat]
+   [enableContactGraph _cpBool]
+   [data _cpDataPointer]
+   [staticBody _cpBody-pointer]))
 ; Definition of Chipmunk Arbiter
 ; which is 'A colliding pair of shapes'.
 (define-cstruct _cpArbiter
-                (
-                ; Calculated value to use for the elasticity coefficient.
-                ; Override in a pre-solve collision handler for custom behavior.
-                [e _cpFloat]
-                ; Calculated value to use for the friction coefficient.
-                ; Override in a pre-solve collision handler for custom behavior.
-                [u _cpFloat]
-                ; Calculated value to use for applying surface velocities.
-                ; Override in a pre-solve collision handler for custom behavior.
-                [surface_vr _cpVect]))
+  (
+   ; Calculated value to use for the elasticity coefficient.
+   ; Override in a pre-solve collision handler for custom behavior.
+   [e _cpFloat]
+   ; Calculated value to use for the friction coefficient.
+   ; Override in a pre-solve collision handler for custom behavior.
+   [u _cpFloat]
+   ; Calculated value to use for applying surface velocities.
+   ; Override in a pre-solve collision handler for custom behavior.
+   [surface_vr _cpVect]))
 ; Definition of 'Collision begin event function callback type'.
 (define _cpCollisionBeginFunc
   (_fun _cpArbiter-pointer
@@ -441,7 +441,7 @@
 ; * Start of vector operation definitions.
 ; ***********************************************
 ;(define (cpv x y)
-  ;(make-cpVect x y))
+;(make-cpVect x y))
 (defchipmunk cpv #:ptr (_fun _cpFloat _cpFloat -> _cpVect))
 (define (cpvzero) (cpv 0.0 0.0))
 ;; FIXME: I didn't change the following three things, since they look
@@ -457,15 +457,15 @@
 (defchipmunk cpvneg
   #:ptr (_fun _cpVect -> _cpVect))
 (defchipmunk cpvmult
-  #:ptr (_fun _cpVect _cpVect -> _cpVect))
+  #:ptr (_fun _cpVect _cpFloat -> _cpVect))
 (defchipmunk cpvcross
-  #:ptr (_fun _cpVect _cpVect -> _cpVect))
+  #:ptr (_fun _cpVect _cpVect -> _cpFloat))
 (defchipmunk cpvperp
   #:ptr (_fun _cpVect -> _cpVect))
 (define cpvlengthsq
   (get-ffi-obj "_cpvlengthsq" chipmunk (_fun _cpVect -> _cpFloat)))
 (defchipmunk cpvlerp
-   #:ptr (_fun _cpVect _cpVect _cpFloat -> _cpVect))
+  #:ptr (_fun _cpVect _cpVect _cpFloat -> _cpVect))
 (defchipmunk cpvnormalize_safe
   #:ptr (_fun _cpVect -> _cpVect))
 
@@ -502,13 +502,12 @@
 ;  to the raw pointer, which is passed in to this. Either this needs to
 ;  be expressed better/correctly, or it needs to be macro-ized so that
 ;  you don't need to actually do all that junk.
-(define cpArbiterGetShapes
-  (get-ffi-obj "_cpArbiterGetShapes" chipmunk
-               (_fun _cpArbiter-pointer
-                     (out1 : (_ptr o _cpShape-pointer))
-                     (out2 : (_ptr o _cpShape-pointer))
-                     -> _void
-                     -> (values out1 out2))))
+(defchipmunk cpArbiterGetShapes
+  #:ptr (_fun _cpArbiter-pointer
+              (out1 : (_ptr o _cpShape-pointer))
+              (out2 : (_ptr o _cpShape-pointer))
+              -> _void
+              -> (values out1 out2)))
 ; ***********************************************
 ; * End of Arbiter operation definitions.
 ; ***********************************************
@@ -543,13 +542,13 @@
        (* (cpBody-i_inv *body)
           rcn
           rcn))
-     )
+    )
   )
 (define (apply_impulse *body j r)
-  (set-cpBody-v! (cpvadd (cpBody-v *body)
-                         (cpvmult j (cpBody-m_inv *body))))
-  (set-cpBody-w! (* (cpBody-i_inv *body)
-                    (cpvcross r j)))
+  (set-cpBody-v! *body (cpvadd (cpBody-v *body)
+                               (cpvmult j (cpBody-m_inv *body))))
+  (set-cpBody-w! *body (* (cpBody-i_inv *body)
+                          (cpvcross r j)))
   _void
   )
 
