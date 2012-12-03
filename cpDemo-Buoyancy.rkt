@@ -7,12 +7,7 @@
 
 ; Pre-solve function for water buoyancy in the space.
 (define (water-presolve arb space ptr)
-  (let*
-      ([dummy-body (cpBodyAlloc)]
-       [water (cast (malloc _cpShape-pointer) _pointer _cpShape-pointer)]
-       [poly (cast (malloc _cpShape-pointer) _pointer _cpShape-pointer)])
-    (cpArbiterGetShapes arb water poly)
-    (print poly)
+  (let-values ([(water poly) (cpArbiterGetShapes arb)])
     (let*
         ([body (cpShapeGetBody poly)]
          [level (cpBB-t (cpShapeGetBB water))]

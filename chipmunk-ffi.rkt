@@ -7,7 +7,7 @@
          rnrs/arithmetic/bitwise-6)
 
 (define chpdll (build-path (current-directory) (string->path-element "chipmunk")))
-(define chipmunk (ffi-lib "chipmunk"))
+(define chipmunk (ffi-lib "libchipmunk"))
 (define-ffi-definer define-chipmunk chipmunk)
 
 (define-syntax (defchipmunk stx)
@@ -502,11 +502,13 @@
 ;  to the raw pointer, which is passed in to this. Either this needs to
 ;  be expressed better/correctly, or it needs to be macro-ized so that
 ;  you don't need to actually do all that junk.
-(defchipmunk cpArbiterGetShapes
-  #:ptr (_fun _cpArbiter-pointer
-              (_ptr io _cpShape-pointer)
-              (_ptr io _cpShape-pointer)
-              -> _void))
+(define cpArbiterGetShapes
+  (get-ffi-obj "_cpArbiterGetShapes" chipmunk
+               (_fun _cpArbiter-pointer
+                     (out1 : (_ptr o _cpShape-pointer))
+                     (out2 : (_ptr o _cpShape-pointer))
+                     -> _void
+                     -> (values out1 out2))))
 ; ***********************************************
 ; * End of Arbiter operation definitions.
 ; ***********************************************
